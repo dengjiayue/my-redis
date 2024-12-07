@@ -105,12 +105,17 @@ func (c *Client) HandleResp() {
 		if err != nil {
 			return
 		}
-		// 写入chan
-		ch, ok := c.M.Load(tag)
-		if !ok {
-			return
-		}
-		ch.(chan []byte) <- resp
+		go func(t uint32) {
+			// 写入chan
+			C, ok := c.M.Load(t)
+			if !ok {
+				return
+			}
+			ch := C.(chan []byte)
+			defer close(ch)
+			ch <- resp
+			c.M.Delete(t)
+		}(tag)
 	}
 }
 
