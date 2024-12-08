@@ -76,6 +76,8 @@ func (s *Server) handleConnection(conn net.Conn) {
 			s.Request(rsp, reqdata)
 			// 读取通道数据
 			rspData := PackData(t, <-rsp)
+			// 放入空闲队列
+			s.DisengagedQueue <- rsp
 			// 发送数据
 			_, err = conn.Write(rspData)
 			if err != nil {
